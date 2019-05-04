@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -13,6 +14,7 @@ public class RoleMgr
     private Transform container;
     GameObjectEntity mainRoleGOE;
     Dictionary<string, GameObject> prefabDic = new Dictionary<string, GameObject>();
+    Dictionary<long, string> names = new Dictionary<long, string>();
     public EntityManager EntityManager { get => m_GameWorld.GetEntityManager();}
     public Transform RoleContainer { get => container; set => container = value; }
 
@@ -43,7 +45,8 @@ public class RoleMgr
         roleGameOE.transform.SetParent(container);
         roleGameOE.transform.localPosition = pos;
         Entity role = roleGameOE.Entity;
-        InitRole(role, uid, typeID, pos);
+        RoleMgr.GetInstance().SetName(uid, name);
+        InitRole(role, uid, typeID, pos, pos);
         EntityManager.AddComponentData(role, new PosSynchInfo {LastUploadPos = float3.zero});
         EntityManager.AddComponent(role, ComponentType.Create<UserCommand>());
         
@@ -67,31 +70,47 @@ public class RoleMgr
         return mainRoleGOE.Entity == entity;
     }
 
-    public Entity AddRole(long uid, long type_id, Vector3 pos)
+    public Entity AddRole(long uid, long typeID, Vector3 pos, Vector3 targetPos)
 	{
         GameObjectEntity roleGameOE = m_GameWorld.Spawn<GameObjectEntity>(ResMgr.GetInstance().GetPrefab("Role"));
         roleGameOE.name = "Role_"+uid;
         roleGameOE.transform.SetParent(container);
         roleGameOE.transform.localPosition = pos;
         Entity role = roleGameOE.Entity;
-        InitRole(role, uid, type_id, pos);
+        InitRole(role, uid, typeID, pos, targetPos);
         return role;
 	}
 
-    private void InitRole(Entity role, long uid, long typeID, Vector3 pos)
+    private void InitRole(Entity role, long uid, long typeID, Vector3 pos, Vector3 targetPos)
     {
-        EntityManager.AddComponentData(role, new MoveSpeed {Value = 1000});
-        EntityManager.AddComponentData(role, new TargetPosition {Value = new float3(pos.x, pos.y, pos.z)});
-        EntityManager.AddComponentData(role, new LocomotionState {Value = LocomotionState.State.Idle});
+        EntityManager.AddComponentData(role, new MoveSpeed {Value = 1200});
+        EntityManager.AddComponentData(role, new TargetPosition {Value = targetPos});
+        EntityManager.AddComponentData(role, new LocomotionState {LocoState = LocomotionState.State.Idle});
         EntityManager.AddComponentData(role, new LooksInfo {CurState=LooksInfo.State.None, LooksEntity=Entity.Null});
         EntityManager.AddComponentData(role, new UID {Value=uid});
+        EntityManager.AddComponentData(role, new SceneObjectTypeData {Value=SceneObjectType.Role});
+        EntityManager.AddComponentData(role, new NameboardData {UIResState=NameboardData.ResState.WaitLoad});
         EntityManager.AddComponentData(role, new TypeID {Value=typeID});
+        EntityManager.AddComponentData(role, new GroundInfo {GroundNormal=Vector3.zero, Altitude=0});
         EntityManager.AddComponentData(role, new JumpState {JumpStatus=JumpState.State.None, JumpCount=0, OriginYPos=0, AscentHeight=0});
+        EntityManager.AddComponentData(role, ActionData.Empty);
         EntityManager.AddComponentData(role, new PosOffset {Value = float3.zero});
         EntityManager.AddComponentData(role, new TimelineState {NewStatus=TimelineState.NewState.Allow, InterruptStatus=TimelineState.InterruptState.Allow});
         
         MoveQuery rmq = EntityManager.GetComponentObject<MoveQuery>(role);
         rmq.Initialize();
+    }
+
+    public string GetName(long uid)
+    {
+        string name = "";
+        names.TryGetValue(uid, out name);
+        return name;
+    }
+
+    public void SetName(long uid, string name)
+    {
+        names[uid] = name;
     }
 }
 

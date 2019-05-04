@@ -69,7 +69,7 @@ public class SceneMgr : MonoBehaviour
         if (detector != null && m_Controller != null)
             m_Controller.RefreshDetector(detector);
         
-        CheckMainRolePos();
+        // CheckMainRolePos();
     }
 
     public void CheckMainRolePos()
@@ -243,7 +243,7 @@ public class SceneMgr : MonoBehaviour
         if (Physics.Raycast(ray1, out groundHit, 12000, groundLayer))
         {
             newPos = groundHit.point;
-            newPos.y += 10;
+            newPos.y += 0.5f;
         }
         else
         {
@@ -303,22 +303,61 @@ public class SceneMgr : MonoBehaviour
         long new_x = Int64.Parse(info_strs[2]);
         long new_y = Int64.Parse(info_strs[3]);
         long new_z = Int64.Parse(info_strs[4]);
+        long target_x = Int64.Parse(info_strs[5]);
+        long target_y = Int64.Parse(info_strs[6]);
+        long target_z = Int64.Parse(info_strs[7]);
         var pos = GetCorrectPos(new Vector3(new_x/GameConst.RealToLogic, new_y/GameConst.RealToLogic, new_z/GameConst.RealToLogic));
+        var targetPos = GetCorrectPos(new Vector3(target_x/GameConst.RealToLogic, target_y/GameConst.RealToLogic, target_z/GameConst.RealToLogic));
         if (type == SceneObjectType.Role)
         {
-            Entity role = RoleMgr.GetInstance().AddRole(uid, typeID, pos);
+            Entity role = RoleMgr.GetInstance().AddRole(uid, typeID, pos, targetPos);
             entityDic.Add(uid, role);
             return role;
         }
         else if (type == SceneObjectType.Monster)
         {
-            Entity monster = MonsterMgr.GetInstance().AddMonster(uid, typeID, pos);
+            Entity monster = MonsterMgr.GetInstance().AddMonster(uid, typeID, pos, targetPos);
             entityDic.Add(uid, monster);
             return monster;
         }
         // else if (type == SceneObjectType.NPC)
             // return AddNPC(uid);
         return Entity.Null;
+    }
+
+    public string GetNameByUID(long uid)
+    {
+        SceneObjectType type = GetSceneObjTypeByUID(uid);
+        string name;
+        switch (type)
+        {
+            case SceneObjectType.Role:
+                name = RoleMgr.GetInstance().GetName(uid);
+                break;
+            case SceneObjectType.Monster:
+                name = MonsterMgr.GetInstance().GetName(GetSceneObject(uid));
+                break;
+            default:
+                name = "";
+                break;
+        }
+        return name;
+    }
+
+    public SceneObjectType GetSceneObjTypeByUID(long uid)
+    {
+        int value = (int)math.floor(uid/10000000000);
+        switch (value)
+        {
+            case 1:
+                return SceneObjectType.Role;
+            case 2:
+                return SceneObjectType.Monster;
+            case 3:
+                return SceneObjectType.NPC;
+            default:
+                return SceneObjectType.None;
+        }
     }
 
     public void RemoveSceneObject(long uid)

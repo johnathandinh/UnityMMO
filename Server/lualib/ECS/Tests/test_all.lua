@@ -1,6 +1,9 @@
 package.path = package.path ..';../?.lua;../../?.lua;Tests/?.lua';
 require "ECS"
 lu = require('Tests.luaunit')
+
+--在上级目录运行本文件即可：lua Tests/test_all.lua
+
 --将 szFullString 对象拆分为一个子字符串表
 function Split(szFullString, szSeparator, start_pos)
 	local nFindStartIndex = start_pos or 1
@@ -25,7 +28,7 @@ function PrintTable( tbl, level, return_counter )
 	end
 	return_counter = return_counter or 5 --剩下多少层就返回,防止无限打印
 	if return_counter <= 0 then
-		print('Cat:util.lua PrintTable return_counter empty')
+		-- print('Cat:util.lua PrintTable return_counter empty')
 		return 
 	end
 	return_counter = return_counter - 1

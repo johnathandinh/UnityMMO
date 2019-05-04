@@ -21,6 +21,8 @@ public class ResMgr
         LoadPrefab("Assets/AssetBundleRes/role/prefab/MainRole.prefab", "MainRole");    
         LoadPrefab("Assets/AssetBundleRes/role/prefab/Role.prefab", "Role");
         LoadPrefab("Assets/AssetBundleRes/monster/prefab/Monster.prefab", "Monster");
+        LoadPrefab("Assets/AssetBundleRes/ui/common/Nameboard.prefab", "Nameboard");
+        LoadPrefab("Assets/AssetBundleRes/ui/common/FightFlyWord.prefab", "FightFlyWord");
 	}
 
     public void LoadPrefab(string path, string storePrefabName)
@@ -42,6 +44,12 @@ public class ResMgr
     public GameObject GetPrefab(string name)
     {
         return this.prefabDic[name];
+    }
+
+    public GameObject SpawnGameObject(string prefabName, Vector3 position=default(Vector3), Quaternion rotation=default(Quaternion))
+    {
+        //Cat:TODO pool this
+        return GameObject.Instantiate(this.prefabDic[prefabName], position, rotation);
     }
 
     public void OnDestroy()

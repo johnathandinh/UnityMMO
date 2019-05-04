@@ -34,25 +34,28 @@ public class MonsterMgr
 		Instance = null;
 	}
 
-    public Entity AddMonster(long uid, long typeID, Vector3 pos)
+    public Entity AddMonster(long uid, long typeID, Vector3 pos, Vector3 targetPos)
 	{
         GameObjectEntity monsterGameOE = m_world.Spawn<GameObjectEntity>(ResMgr.GetInstance().GetPrefab("Monster"));
         monsterGameOE.name = "Monster_"+uid;
         monsterGameOE.transform.SetParent(container);
         monsterGameOE.transform.localPosition = pos;
         Entity monster = monsterGameOE.Entity;
-        InitMonster(monster, uid, typeID, pos);
+        InitMonster(monster, uid, typeID, pos, targetPos);
         return monster;
 	}
 
-    private void InitMonster(Entity monster, long uid, long typeID, Vector3 pos)
+    private void InitMonster(Entity monster, long uid, long typeID, Vector3 pos, Vector3 targetPos)
     {
         EntityManager.AddComponentData(monster, new MoveSpeed {Value = 1000});
-        EntityManager.AddComponentData(monster, new TargetPosition {Value = new float3(pos.x, pos.y, pos.z)});
-        EntityManager.AddComponentData(monster, new LocomotionState {Value = LocomotionState.State.Idle});
+        EntityManager.AddComponentData(monster, new TargetPosition {Value = targetPos});
+        EntityManager.AddComponentData(monster, new LocomotionState {LocoState = LocomotionState.State.Idle});
         EntityManager.AddComponentData(monster, new LooksInfo {CurState=LooksInfo.State.None, LooksEntity=Entity.Null});
         EntityManager.AddComponentData(monster, new UID {Value=uid});
         EntityManager.AddComponentData(monster, new TypeID {Value=typeID});
+        EntityManager.AddComponentData(monster, ActionData.Empty);
+        EntityManager.AddComponentData(monster, new SceneObjectTypeData {Value=SceneObjectType.Monster});
+        EntityManager.AddComponentData(monster, new NameboardData {UIResState=NameboardData.ResState.WaitLoad});
         // EntityManager.AddComponentData(monster, new JumpState {JumpStatus=JumpState.State.None, JumpCount=0, OriginYPos=0, AscentHeight=0});
         EntityManager.AddComponentData(monster, new PosOffset {Value = float3.zero});
         EntityManager.AddComponentData(monster, new TimelineState {NewStatus=TimelineState.NewState.Allow, InterruptStatus=TimelineState.InterruptState.Allow});
@@ -86,6 +89,12 @@ public class MonsterMgr
                 Debug.LogError("cannot fine file "+bodyPath);
             }
         });
+    }
+
+    public string GetName(Entity entity)
+    {
+        var typeIDData = EntityManager.GetComponentData<TypeID>(entity);
+        return "monster"+typeIDData.Value;
     }
 }
 

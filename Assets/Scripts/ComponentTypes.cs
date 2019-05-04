@@ -10,6 +10,11 @@ namespace UnityMMO
         public long Value;
     }
 
+    public struct SceneObjectTypeData : IComponentData
+    {
+        public SceneObjectType Value;
+    }
+
     //Role类型的话对应RoleID，Monster和NPC类型对应TypeID
     public struct TypeID : IComponentData
     {
@@ -44,9 +49,40 @@ namespace UnityMMO
             DoubleJump,
             TrebleJump,
             InAir,
+            BeHit,
             StateNum,
         }
-        public State Value;
+        public State LocoState;
+
+        public bool IsOnGround()
+        {
+            return LocoState == LocomotionState.State.Idle || LocoState == LocomotionState.State.Run || LocoState == LocomotionState.State.Sprint || LocoState == LocomotionState.State.BeHit;
+        }
+        public bool IsInJump()
+        {
+            return LocoState == LocomotionState.State.Jump || LocoState == LocomotionState.State.DoubleJump || LocoState == LocomotionState.State.TrebleJump || LocoState == LocomotionState.State.InAir;
+        }
+        public float StartTime;
+        public int JumpCount;
+    }
+
+    public struct ActionData : IComponentData
+    {
+        public int Jump;
+        public static ActionData Empty = new ActionData{Jump=0};
+    }
+
+    public struct NameboardData : IComponentData
+    {
+        public enum ResState 
+        {
+            WaitLoad,//等待判断是否离主角够近，够近才进入此状态等待加载prefab
+            Loading,//加载中
+            Loaded,//已加载
+            DontLoad,//远离主角，别加载了
+        }
+        public ResState UIResState;
+        public Entity UIEntity;
     }
 
     public struct PosOffset : IComponentData
@@ -114,8 +150,8 @@ namespace UnityMMO
     public struct GroundInfo : IComponentData
     {
         // public Collider groundCollider;
-        public Vector3 groundNormal;
-        public float altitude; 
+        public Vector3 GroundNormal;
+        public float Altitude; 
         // public GroundInfo(){}
     }
 

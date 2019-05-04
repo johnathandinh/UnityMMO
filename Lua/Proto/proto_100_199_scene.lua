@@ -11,19 +11,28 @@ return [[
 	pos_z 7 : integer
 	base_info 8 : scene_role_base_info
 }
+
+#key 对应前端SceneInfoKey.cs里的SceneInfoKey或后端scene_const.lua里的SceneInfoKey
+#1:EnterView即有场景节点（角色、怪物或NPC）进入视角，value为scene_uid,type_id,pos_x,pos_y,pos_z
+#2:LeaveView场景节点离开视角
+#3:PosChange场景节点的坐标变更
+#4:TargetPos场景节点的目标坐标变更
 .info_item {
 	key 0 : integer
 	value 1 : string
 	time 2 : integer
 }
+
 .scene_obj_info {
 	scene_obj_uid 0 : integer
 	info_list 1 : *info_item
 }
+
 .scene_role_base_info {
 	level 0 : integer
 	career 1 : integer
 }
+
 .scene_role_looks_info {
 	career 0 : integer
 	body 1 : integer
@@ -31,6 +40,9 @@ return [[
 	weapon 3 : integer
 	wing 4 : integer
 	horse 5 : integer
+	name 6 : string
+	hp 7 : integer
+	max_hp 8 : integer
 }
 .scene_monster_info {
 	monster_id 0 : integer
@@ -39,11 +51,14 @@ return [[
 	maxhp 3 : integer
 }
 
+#flag: 0普通扣血 1暴击 2Miss 3穿刺
 .scene_fight_defender_info {
 	uid 0 : integer
-	hp 1 : integer
-	hurt 2 : integer
+	cur_hp 1 : integer
+	damage 2 : integer
+	flag 3 : integer 
 }
+
 .scene_fight_event_info {
 	attacker_uid 0 : integer
 	skill_id 1 : integer
@@ -54,8 +69,9 @@ return [[
 	target_pos_x 6 : integer
 	target_pos_y 7 : integer
 	target_pos_z 8 : integer
-	time 9 : integer
-	defenders 10 : *scene_fight_defender_info
+	direction 9 : integer
+	time 10 : integer
+	defenders 11 : *scene_fight_defender_info
 }
 
 .scene_npc_info {
@@ -69,6 +85,7 @@ scene_get_main_role_info 100 {
 	}
 }
 
+#走路协议
 scene_walk 101 {
 	request {
 		start_x 0 : integer
@@ -83,6 +100,7 @@ scene_walk 101 {
 	}
 }
 
+#通用状态变更协议，具体内容见上面的scene_obj_info.info_item结构体注释
 scene_get_objs_info_change 102 {
 	request {
 	}
@@ -110,12 +128,17 @@ scene_get_role_look_info 104 {
 scene_cast_skill 105 {
 	request {
 		skill_id 0 : integer
-		target_pos_x 1 : integer
-		target_pos_y 2 : integer
-		target_pos_z 3 : integer
+		cur_pos_x 1 : integer
+		cur_pos_y 2 : integer
+		cur_pos_z 3 : integer
+		target_pos_x 4 : integer
+		target_pos_y 5 : integer
+		target_pos_z 6 : integer
+		direction 7 : integer
 	}
 	response {
 		result 0 : integer
+		fight_event 1 : scene_fight_event_info
 	}
 }
 

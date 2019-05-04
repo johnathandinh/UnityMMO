@@ -16,6 +16,9 @@ namespace UnityMMO
         public const int NetResultOk = 0;
         public const int Gravity = -10;
         public const int MaxJumpCount = 3;
+        public static readonly float[] JumpAscentDuration = new float[]{0.8333f*3/4.0f, 0.8333f*3/4.0f, 1.1666f*3/4.0f};
+        public static readonly float[] JumpAscentHeight = new float[]{3, 3, 3};
+        public const float MaxFallVelocity = 10;
 
         public static string GetRoleResPath()
         {
@@ -42,9 +45,35 @@ namespace UnityMMO
             return "Assets/AssetBundleRes/role/career_"+career+"/timeline/skill_"+skillID+".playable";
         }
 
+        public static string GetMonsterSkillResPath(int skillID)
+        {
+            return "Assets/AssetBundleRes/monster/timeline/skill_"+skillID+".playable";
+        }
+
         public static string GetRoleJumpResPath(int career, int jumpID)
         {
             return "Assets/AssetBundleRes/role/career_"+career+"/timeline/jump_"+jumpID+".playable";
+        }
+
+        public static string GetBloodResPath(Nameboard.ColorStyle style)
+        {
+            switch (style)
+            {
+                case Nameboard.ColorStyle.Red:
+                {
+                    return "Assets/AssetBundleRes/ui/common/com_blood_red.png";
+                }
+                case Nameboard.ColorStyle.Green:
+                {
+                    return "Assets/AssetBundleRes/ui/common/com_blood_green.png";
+                }
+                case Nameboard.ColorStyle.Blue:
+                {
+                    return "Assets/AssetBundleRes/ui/common/com_blood_blue.png";
+                }
+                default:
+                    return "";
+            }
         }
 
     }

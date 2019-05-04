@@ -26,6 +26,7 @@ public class SynchFromNet {
         changeFuncDic = new Dictionary<SceneInfoKey, Action<Entity, SprotoType.info_item>>();
         changeFuncDic[SceneInfoKey.PosChange] = ApplyChangeInfoPos;
         changeFuncDic[SceneInfoKey.TargetPos] = ApplyChangeInfoTargetPos;
+        changeFuncDic[SceneInfoKey.JumpState] = ApplyChangeInfoJumpState;
     }
 
     public void StartSynchFromNet()
@@ -51,11 +52,39 @@ public class SynchFromNet {
     public void OnAckFightEvents(SprotoTypeBase result)
     {
         SprotoType.scene_listen_fight_event.request req = new SprotoType.scene_listen_fight_event.request();
-        NetMsgDispatcher.GetInstance().SendMessage<Protocol.scene_listen_fight_event>(req, OnAckSceneObjInfoChange);
+        NetMsgDispatcher.GetInstance().SendMessage<Protocol.scene_listen_fight_event>(req, OnAckFightEvents);
         SprotoType.scene_listen_fight_event.response ack = result as SprotoType.scene_listen_fight_event.response;
-        if (ack==null)
+        Debug.Log("ack : "+(ack!=null).ToString()+" fightevents:"+(ack.fight_events!=null).ToString());
+        if (ack==null || ack.fight_events==null)
             return;
-        
+        var len = ack.fight_events.Count;
+        Debug.Log("lisend fight event : "+len);
+        for (int i = 0; i < len; i++)
+        {
+            HandleCastSkill(ack.fight_events[i]);
+        }
+    }
+
+    private void HandleCastSkill(SprotoType.scene_fight_event_info fight_event)
+    {
+        long uid = fight_event.attacker_uid;
+        Entity scene_entity = SceneMgr.Instance.GetSceneObject(uid);
+        var isMainRole = RoleMgr.GetInstance().IsMainRoleEntity(scene_entity);
+        // isMainRole = false;//test
+        if (scene_entity==Entity.Null || isMainRole)
+            return;
+
+        //TODO:预先判断是否能使用技能
+        bool is_can_cast = true;
+        if (!is_can_cast)
+            return;
+
+        string assetPath = SkillManager.GetInstance().GetSkillResPath((int)fight_event.skill_id);
+        Debug.Log("OnAckFightEvents assetPath : "+assetPath);
+        var param = new Dictionary<string, object>();
+        param["FlyHurtWord"] = fight_event.defenders;
+        var timelineInfo = new TimelineInfo{ResPath=assetPath, Owner=scene_entity, Param=param};
+        TimelineManager.GetInstance().AddTimeline(uid, timelineInfo, SceneMgr.Instance.EntityManager);  
     }
 
     public void ReqSceneObjInfoChange()
@@ -74,11 +103,10 @@ public class SynchFromNet {
 
     public void OnAckSceneObjInfoChange(SprotoTypeBase result)
     {
-        // Debug.Log("synch from net received OnAckSceneObjInfoChange:"+(result!=null).ToString());
         SprotoType.scene_get_objs_info_change.request req = new SprotoType.scene_get_objs_info_change.request();
         NetMsgDispatcher.GetInstance().SendMessage<Protocol.scene_get_objs_info_change>(req, OnAckSceneObjInfoChange);
         SprotoType.scene_get_objs_info_change.response ack = result as SprotoType.scene_get_objs_info_change.response;
-        if (ack==null)
+        if (ack==null || ack.obj_infos==null)
             return;
         int len = ack.obj_infos.Count;
         for (int i = 0; i < len; i++)
@@ -164,5 +192,13 @@ public class SynchFromNet {
         // }
         SceneMgr.Instance.EntityManager.SetComponentData(entity, new TargetPosition {Value = newTargetPos});
     }
+
+    private void ApplyChangeInfoJumpState(Entity entity, SprotoType.info_item change_info)
+    {
+        var actionData = SceneMgr.Instance.EntityManager.GetComponentData<ActionData>(entity);
+        actionData.Jump = 1;
+        SceneMgr.Instance.EntityManager.SetComponentData(entity, actionData);
+    }
+    
 }
 }
