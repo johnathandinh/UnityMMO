@@ -1,6 +1,4 @@
-local _class={}
- 
-function BaseClass(super)
+local function BaseClass(super)
 	local class_type={}
 	class_type.Constructor=false
 	class_type.DefaultVar=false
@@ -16,11 +14,11 @@ function BaseClass(super)
 				c.Constructor(obj,...)
 			end
 		end
-		if class_type.DefaultVar then
-			obj = class_type.DefaultVar(obj)
-		else
+		-- if class_type.DefaultVar then
+		-- 	obj = class_type.DefaultVar(obj)
+		-- else
 			obj = {}
-		end
+		-- end
 		local function meta_func(t, k)
 			local ret = class_type[k]
 			obj[k] = ret
@@ -43,3 +41,5 @@ function BaseClass(super)
  
 	return class_type
 end
+
+return BaseClass
